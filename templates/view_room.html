@@ -1,33 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>My Chat App</title>
 </head>
+
 <body>
-<h1>Welcome to chat room: {{ room.name }}</h1>
+    <h1>Welcome to chat room: {{ room.name }}</h1>
 
-<button type="button" id="load_older_messages_btn">Load Older Messages</button>
-<button type="button" id="leave_room">Leave Room</button>
-<div id="messages">
-    {% for message in messages %}
+    <button type="button" id="load_older_messages_btn">Load Older Messages</button>
+    <button type="button" id="leave_room">Leave Room</button>
+    <div id="messages">
+        {% for message in messages %}
         <div><b>{{ message.sender }}&nbsp;[{{ message.created_at }}]:&nbsp;</b> {{ message.text }}</div>
-    {% endfor %}
-</div>
+        {% endfor %}
+    </div>
 
-<form id="message_input_form">
-    <input type="text" id="message_input" placeholder="Enter your message here">
-    <button type="submit">Send</button>
-</form>
+    <form id="message_input_form">
+        <input type="text" id="message_input" placeholder="Enter your message here">
+        <button type="submit">Send</button>
+    </form>
 
-<ul>
-    {% for member in room_members %}
+    <ul>
+        {% for member in room_members %}
         <li>{{ member._id.username }}</li>
-    {% endfor %}
-</ul>
+        {% endfor %}
+    </ul>
 
 </body>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.3/socket.io.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
 <script>
     const socket = io.connect("http://localhost:5000/");
 
@@ -53,7 +55,7 @@
             message_input.focus();
         }
     });
-    
+
     document.getElementById('leave_room').onclick = function (e) {
         socket.emit('leave_room', {
             username: "{{ username }}",
@@ -74,7 +76,7 @@
 
     document.getElementById('load_older_messages_btn').onclick = (e) => {
         page += 1;
-        fetch("/rooms/{{ room._id }}/messages?page="+page , {
+        fetch("/rooms/{{ room._id }}/messages?page=" + page, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -115,4 +117,5 @@
         document.getElementById('messages').appendChild(newNode);
     });
 </script>
+
 </html>
