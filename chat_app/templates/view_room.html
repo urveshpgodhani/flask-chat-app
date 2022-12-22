@@ -31,7 +31,7 @@
 </body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
 <script>
-    const socket = io.connect("http://0.0.0.0:10000");
+    const socket = io.connect("flask-chat-t2x8.onrender.com");
 
     socket.on('connect', function () {
         socket.emit('join_room', {
