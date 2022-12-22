@@ -1,8 +1,10 @@
 from pymongo import MongoClient, DESCENDING
 from werkzeug.security import generate_password_hash
-from user import User
+from .user import User
 from datetime import datetime
 from bson import ObjectId
+from chat_app import login_manager
+
 
 client = MongoClient("mongodb+srv://urvesh:368viqzI268ZHSN2@cluster0.jp1c8nu.mongodb.net/?retryWrites=true&w=majority")
 
@@ -25,6 +27,12 @@ def get_user(username):
 def get_user_email(email):
     user_data = users_collection.find_one({'email':email})
     return User(user_data['_id'], user_data['email'], user_data['password']) if user_data else None
+
+@login_manager.user_loader
+def load_user(username):
+    user_data = users_collection.find_one({'_id':username})
+    return User(user_data['_id'], user_data['email'], user_data['password']) if user_data else None
+
 
 #rooms
 

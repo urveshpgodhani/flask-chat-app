@@ -24,3 +24,4 @@ class User:
 
     def check_password(self, password_input):
         return check_password_hash(self.password, password_input)
+    
