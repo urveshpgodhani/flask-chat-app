@@ -24,8 +24,18 @@ def get_user(username):
     user_data = users_collection.find_one({'_id':username})
     return User(user_data['_id'], user_data['email'], user_data['password']) if user_data else None
 
+def get_all_user():
+    list = []
+    for user in users_collection.find():
+        list.append(user['_id'])
+    return list
+
 def get_user_email(email):
     user_data = users_collection.find_one({'email':email})
+    return User(user_data['_id'], user_data['email'], user_data['password']) if user_data else None
+
+def get_user_username(username):
+    user_data = users_collection.find_one({'_id':username})
     return User(user_data['_id'], user_data['email'], user_data['password']) if user_data else None
 
 @login_manager.user_loader
@@ -47,6 +57,11 @@ def update_room(room_id, room_name):
 
 def get_room(room_id):
     return rooms_collection.find_one({'_id': ObjectId(room_id)})
+
+def delete_room(room_id):
+    rooms_collection.delete_one({'_id':ObjectId(room_id)})
+    room_members_collection.delete_many({'_id.room_id':ObjectId(room_id)})
+    messages_collection.delete_many({'room_id':room_id})
 
 def get_room_id_username(room_id,username):
     return rooms_collection.find_one({'_id':room_id,'created_by':username})

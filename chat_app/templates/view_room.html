@@ -1,121 +1,180 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "layout.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>My Chat App</title>
-</head>
+{% block title %}
+Live chat
+{% endblock %}
 
-<body>
-    <h1>Welcome to chat room: {{ room.name }}</h1>
+{% block main %}
 
-    <button type="button" id="load_older_messages_btn">Load Older Messages</button>
-    <button type="button" id="leave_room">Leave Room</button>
-    <div id="messages">
-        {% for message in messages %}
-        <div><b>{{ message.sender }}&nbsp;[{{ message.created_at }}]:&nbsp;</b> {{ message.text }}</div>
-        {% endfor %}
+<div class="container create-room-container mx-auto p-1">
+  <div class="d-flex">
+    <h1 class="h5 bg-secondary text-light p-2 mb-0 flex-grow-1">{{ room["name"] }}</h1>
+    <button class="btn btn-sm btn-outline-secondary" id="load_older_messages_btn">Load Message</button>
+    <button class="btn btn-sm btn-outline-secondary" id="leaveButton">Leave</button>
+    {% if isAdmin %}
+      <button class="btn btn-sm btn-outline-secondary" id="editButton">Edit Room</button>
+      <button class="btn btn-sm btn-outline-secondary" id="deleteButton">Delete Room</button>
+    {% endif %}
+
+  </div>
+
+  <div class="message-container container-fluid mb-2 py-2 overflow-auto border border-1 border-secondary d-flex 
+    flex-column" id="messageContainer">
+    <div class="mt-auto"></div>
+  </div>
+
+  <form id="form">
+    <div class="d-flex flex-nowrap">
+      <input autocomplete="off" class="form-control flex-grow-1 me-1" type="text" id="input"
+        placeholder="Write a message...">
+      <button class="btn btn-sm btn-outline-primary" xe><i class="fa-solid fa-paper-plane"></i></button>
     </div>
+  </form>
+</div>
 
-    <form id="message_input_form">
-        <input type="text" id="message_input" placeholder="Enter your message here">
-        <button type="submit">Send</button>
-    </form>
-
-    <ul>
-        {% for member in room_members %}
-        <li>{{ member._id.username }}</li>
-        {% endfor %}
-    </ul>
-
-</body>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
 <script>
-    const socket = io.connect("flask-chat-t2x8.onrender.com");
+  const socket = io.connect("http://127.0.0.1:5000");
 
-    socket.on('connect', function () {
-        socket.emit('join_room', {
-            username: "{{ username }}",
-            room: "{{ room._id }}"
+  const form = document.getElementById("form");
+  const input = document.getElementById("input");
+  const messageContainer = document.getElementById("messageContainer");
+  const leaveButton = document.getElementById("leaveButton");
+
+  socket.on("connect", () => {
+    socket.emit("join_room", {
+      username: "{{ username }}",
+      room: "{{ room._id }}",
+    });
+  });
+  function htmlToElements(html) {
+    var template = document.createElement('template');
+    template.innerHTML = html;
+    return template.content.childNodes;
+  }
+
+  function appendMessage(msgHtml) {
+    const jack2 = document.createElement("div");
+    jack2.innerHTML = msgHtml;
+    jack2.className += "mb-2 d-flex flex-row flex-nowrap"
+    messageContainer.prepend(jack2);
+    messageContainer.scrollTop = messageContainer.scrollHeight;
+  }
+
+  socket.on("join_room_announcement", (data) => {
+    if (data.username !== "{{ username }}") {
+      let newItem = `
+    <div class="row gap-1 mb-2">
+      <div class="message-text col me-2 text-muted">${data.username} has joined the room</div>
+    </div>
+  `;
+      appendMessage(newItem);
+    }
+  });
+
+  // Add the chat message to DOM
+  socket.on("receive_message", (data) => {
+    let newItem = `
+    <div class="mb-2 d-flex flex-row flex-nowrap">
+      <div class="message-info me-3 p-1 align-self-end  bg-secondary text-white rounded-2">
+        ${data.username}
+      </div>
+      <div class="dialog-box">
+        <div class="arrow">
+          <div class="outer"></div>
+          <div class="inner"></div>
+        </div>
+      </div>
+      <div class="message-text p-1 border border-1 rounded-2 flex-grow-1">
+        <div>${data.message}</div>
+      </div>
+    </div>
+  `;
+    appendMessage(newItem);
+  });
+
+  // Send message with enter (hidden submit button)
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (input.value) {
+      socket.emit("send_message", {
+        username: "{{ username }}",
+        room: "{{ room._id }}",
+        message: input.value,
+      });
+      input.value = "";
+    }
+  });
+
+  // Leave room by clicking the button
+  function leaveRoom() {
+    socket.emit(
+      "leave_room",
+      {
+        username: "{{ username }}",
+        room: "{{ room._id }}",
+      },
+      () => {
+        socket.disconnect();
+        window.location.href = "/";
+      }
+    );
+  }
+
+  leaveButton.addEventListener("click", () => {
+    isLeave = confirm("Do you want to leave the chat?");
+
+    if (isLeave) {
+      leaveRoom();
+    }
+  });
+
+  editButton.addEventListener("click", () => {
+    isEdit = confirm("Do you want to change group ?");
+
+    if (isEdit) {
+      window.location.href = "/rooms/{{ room._id }}/edit";
+    }
+  });
+
+  deleteButton.addEventListener("click", () => {
+    isDelete = confirm("Do you want to delete a group ?");
+
+    if (isDelete) {
+      window.location.href = "/rooms/{{ room._id }}/delete";
+    }
+  });
+
+  let page = -1;
+
+  document.getElementById('load_older_messages_btn').onclick = (e) => {
+    page += 1;
+    fetch("/rooms/{{ room._id }}/messages?page=" + page, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }).then(response => {
+      response.json().then(messages => {
+        messages.reverse().forEach(data => {
+          let newItem = `
+            <div class="message-info me-3 p-1 align-self-end  bg-secondary text-white rounded-2">
+              ${data.sender}
+            </div>
+            <div class="dialog-box">
+              <div class="arrow">
+                <div class="outer"></div>
+                <div class="inner"></div>
+              </div>
+            </div>
+            <div class="message-text p-1 border border-1 rounded-2 flex-grow-1">
+              <div>${data.text}</div>
+            </div>
+        `;
+          appendMessage(newItem);
         });
+      })
+    })
+  };
 
-        let message_input = document.getElementById('message_input');
-
-        document.getElementById('message_input_form').onsubmit = function (e) {
-            e.preventDefault();
-            let message = message_input.value.trim();
-            if (message.length) {
-                socket.emit('send_message', {
-                    username: "{{ username }}",
-                    room: "{{ room._id }}",
-                    message: message
-                })
-            }
-            message_input.value = '';
-            message_input.focus();
-        }
-    });
-
-    document.getElementById('leave_room').onclick = function (e) {
-        socket.emit('leave_room', {
-            username: "{{ username }}",
-            room: "{{ room._id }}"
-        })
-        window.location.href = "http://localhost:5000/"
-    }
-
-    window.addEventListener("onunload", function (e) {
-        socket.emit('leave_room', {
-            username: "{{ username }}",
-            room: "{{ room._id }}"
-        })
-    });
-
-
-    let page = 0;
-
-    document.getElementById('load_older_messages_btn').onclick = (e) => {
-        page += 1;
-        fetch("/rooms/{{ room._id }}/messages?page=" + page, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        }).then(response => {
-            response.json().then(messages => {
-                messages.reverse().forEach(message => prepend_message(message.text, message.sender, message.created_at));
-            })
-        })
-    };
-
-    function prepend_message(message, username, created_at) {
-        const newNode = document.createElement('div');
-        newNode.innerHTML = `<b>${username}&nbsp;[${created_at}]:&nbsp;</b> ${message}`;
-        const messages_div = document.getElementById('messages');
-        messages_div.insertBefore(newNode, messages_div.firstChild);
-    }
-
-    socket.on('receive_message', function (data) {
-        console.log(data);
-        const newNode = document.createElement('div');
-        newNode.innerHTML = `<b>${data.username}&nbsp;[${data.created_at}]:&nbsp;</b> ${data.message}`;
-        document.getElementById('messages').appendChild(newNode);
-    });
-
-    socket.on('join_room_announcement', function (data) {
-        console.log(data);
-        if (data.username !== "{{ username }}") {
-            const newNode = document.createElement('div');
-            newNode.innerHTML = `<b>${data.username}</b> has joined the room`;
-            document.getElementById('messages').appendChild(newNode);
-        }
-    });
-
-    socket.on('leave_room_announcement', function (data) {
-        const newNode = document.createElement('div');
-        newNode.innerHTML = `<b>${data.username}</b> has left the room`;
-        document.getElementById('messages').appendChild(newNode);
-    });
 </script>
-
-</html>
+{% endblock %}

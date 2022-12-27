@@ -8,10 +8,9 @@ login_manager.login_view = 'auth.login'
 login_manager.login_message_category = 'info'
 
 
-def create_app(debug=False):
+def create_app():
     
     app = Flask(__name__)
-    app.debug = debug
     app.config['SECRET_KEY'] = 'gjr39dkjn344_!67#'
 
     from chat_app.auth import auth as auth_blueprint

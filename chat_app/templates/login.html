@@ -1,20 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>My Chat App</title>
-</head>
-<body>
-<h1>Login</h1>
-<h3>{{ message }}</h3>
-<form method="post" action="/login">
-    <label>Username:</label>
-    <input type="text" name="username">
-    <br>
-    <label>Password:</label>
-    <input type="password" name="password">
-    <br>
-    <button type="submit">Submit</button>
-</form>
-</body>
-</html>
+{% extends "layout.html" %}
+
+{% block title %}
+Login
+{% endblock %}
+
+{% block main %}
+<!-- Login form -->
+
+<div class="container text-center">
+  <h1 class="text-primary mb-4">Log In</h1>
+  <div class="mx-auto form-container">
+    {% if message %}
+    <div class="alert alert-danger" role="alert">
+      {{message}}
+    </div>
+    {% endif %}
+    <form action="{{ url_for("auth.login") }}" method="post" accept-charset="utf-8">
+      <div class="mb-3">
+        <label for="email" class="form-label">User Name</label>
+        <input autocomplete="off" autofocus type="text" class="form-control" id="username" name="username"
+        name="username">
+      </div>
+      <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="password" name="password">
+      </div>
+      <div class="d-flex d-md-block ">
+        <button type="submit" class="btn btn-primary flex-grow-1">Log In</button>
+      </div>
+    </form>
+  </div>
+  <div>
+    For Registration <a href="/signup">Click Here</a>
+  </div>
+  
+</div>
+
+{% endblock %}

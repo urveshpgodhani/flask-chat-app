@@ -1,10 +1,10 @@
 from flask import render_template, redirect, request, url_for, Blueprint
 from flask_login import login_user, login_required, logout_user, current_user
-from ..db import get_user, save_user, get_user_email,get_rooms_for_user
+from ..db import get_user, save_user, get_user_email,get_rooms_for_user, get_user_username
 from pymongo.errors import DuplicateKeyError
 from .. import socketio
 
-auth = Blueprint('auth', __name__)
+auth = Blueprint('auth', __name__, static_folder='chat_app/static', template_folder='chat_app/templates')
 
 @auth.route("/")
 @login_required
@@ -45,23 +45,31 @@ def signup():
         email = request.form.get('email')
         password = request.form.get('password')
         email_exist = get_user_email(email)
+        username_exist = get_user_username(username)
+
+        if len(email) == 0 or len(username) == 0 or len(password) == 0:
+            message = 'All Fields Are Required'
+            return render_template('signup.html', message=message)
 
         if email_exist is not None:
             message = 'Email Already Exist'
             return render_template('signup.html', message=message)
+        
+        if username_exist is not None:
+            message = 'Username Already Exist'
+            return render_template('signup.html', message=message)
 
         try:
             save_user(username, email, password)
-            return redirect(url_for('login'))
+            return redirect(url_for('auth.login'))
         except DuplicateKeyError:
             message = 'User Already Exist'
-    
+
     return render_template('signup.html', message=message)
 
 @auth.route("/logout")
 @login_required
 def logout():
-    print(current_user.username)
     socketio.emit('leave_room_announcement', data=current_user.username)
     logout_user()
-    return redirect(url_for('home'))
+    return redirect(url_for('auth.home'))

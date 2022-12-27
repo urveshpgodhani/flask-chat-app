@@ -1,20 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>My Chat App</title>
-</head>
-<body>
-<h1>Edit Room</h1>
-<h3>{{ message| safe }}</h3>
-<form method="post">
-    <label>Room Name:</label>
-    <input type="text" name="room_name" value="{{ room.name }}">
-    <br>
-    <label>Members:</label>
-    <input type="text" name="members" value="{{ room_members_str }}">
-    <br>
-    <button type="submit">Submit</button>
-</form>
-</body>
-</html>
+{% extends "layout.html" %}
+
+{% block title %}
+Create Room
+{% endblock %}
+
+{% block main %}
+
+<!-- Create room form -->
+<div class="card create-room-container mx-auto p-2">
+  <div class="card-body">
+    <h1 class="h2 card-title text-primary mb-4">Create Room <i class="mx-2 fa-solid fa-people-roof"></i></h1>
+    <form action="/rooms/{{ room['_id'] }}/edit" method="post" accept-charset="utf-8">
+      <div class="row mb-3">
+        <label for="room_name" class="col-sm-3 col-form-label">Room Name</label>
+        <div class="col-sm-9">
+          <input autofocus type="text" class="form-control" id="room_name" name="room_name" value="{{ room['name'] }}">
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <label for="User" class="col-sm-3 col-form-label">User</label>
+        <div class="col-sm-9">
+          {% for user in room_members_present %}
+            <input type="checkbox" id="vehicle1" name="mycheckbox" value={{user}} checked>
+            <label for="vehicle1">{{user}}</label><br>
+          {% endfor %}
+          {% for user in room_members_not_present %}
+              <input type="checkbox" id="vehicle1" name="mycheckbox" value={{user}}>
+              <label for="vehicle1">{{user}}</label><br>
+            {% endfor %}
+        </div>
+        <div class="col-sm-9">
+
+      </div>
+
+      <div class="d-flex d-md-block ">
+        <button type="submit" class="btn btn-primary flex-grow-1">Create</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
