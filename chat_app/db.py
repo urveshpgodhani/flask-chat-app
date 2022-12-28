@@ -5,7 +5,6 @@ from datetime import datetime
 from bson import ObjectId
 from chat_app import login_manager
 
-
 client = MongoClient("mongodb+srv://urvesh:368viqzI268ZHSN2@cluster0.jp1c8nu.mongodb.net/?retryWrites=true&w=majority")
 
 chat_db = client.get_database("chatDB")
