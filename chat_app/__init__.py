@@ -9,7 +9,6 @@ login_manager.login_message_category = 'info'
 
 
 def create_app():
-    
     app = Flask(__name__)
     app.config['SECRET_KEY'] = 'gjr39dkjn344_!67#'
 
