@@ -18,7 +18,7 @@ def create_room():
         usernames = list(set(usernames))
         if len(room_name) == 0:
             message = 'Room Name Is Not Valid'
-            return render_template('create_room.html',message=message)
+            return render_template('create_room.html',message=message,allUser=allUser)
         if len(room_name) and len(usernames):
             room_id = save_room(room_name, current_user.username)
             if current_user.username in usernames:

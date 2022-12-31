@@ -10,6 +10,11 @@ Create Room
 <div class="card create-room-container mx-auto p-2">
   <div class="card-body">
     <h1 class="h2 card-title text-primary mb-4">Create Room <i class="mx-2 fa-solid fa-people-roof"></i></h1>
+    {% if message %}
+    <div class="alert alert-danger" role="alert">
+      {{message}}
+    </div>
+    {% endif %}
     <form action="{{ url_for("room.create_room") }}" method="post" accept-charset="utf-8">
       <div class="row mb-3">
         <label for="room_name" class="col-sm-3 col-form-label">Room Name</label>
